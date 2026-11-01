@@ -169,3 +169,13 @@ body.embed .side-col a.btn,body.embed .idea-head+.tgrid a.btn{display:none}
 body.embed #pitch{max-height:none}
 .embedbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#0a120e;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
 .embedbar select{width:auto;max-width:60%}
+
+/* embed compacto */
+body.embed{background:transparent}
+body.embed .tgrid{grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:20px}
+body.embed #pitch{max-width:430px;margin:0 auto}
+body.embed .idea-head{margin:8px 0 12px}
+body.embed .hint{display:none}
+body.embed .cols2{gap:16px}
+body.embed .dim,body.embed .card2{padding:10px 12px}
+@media(max-width:700px){body.embed .tgrid{grid-template-columns:1fr}}
