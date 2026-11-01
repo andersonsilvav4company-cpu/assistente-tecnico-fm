@@ -3,27 +3,131 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Assistente Técnico FM</title>
+<title>Assistente Técnico FM — táticas do futebol real no Football Manager</title>
+<meta name="description" content="Seu assistente técnico para o Football Manager: peça as ideias de um treinador, veja a tática no campinho e descubra se funciona no jogo.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="shell">
-  <header class="top" id="top"></header>
-  <div class="app" id="app">
-    <aside class="left" id="left"></aside>
-    <main class="center">
-      <header class="idea-head" id="head"></header>
-      <div class="phase-bar" id="phasebar"></div>
-      <div class="tools" id="tools"></div>
-      <div class="pitch-wrap"><svg id="pitch" viewBox="0 0 680 1000" preserveAspectRatio="xMidYMid meet"></svg></div>
-      <p class="hint" id="hint"></p>
-    </main>
-    <aside class="right">
-      <nav class="rtabs" id="rtabs"></nav>
-      <div class="rbody" id="rbody"></div>
-    </aside>
+<header class="top" id="top"></header>
+
+<section class="hero" id="inicio">
+  <div class="wrap">
+    <p class="eyebrow">Football Manager 26 · 27</p>
+    <h1>O assistente técnico que o Football Manager <em>não tem</em>.</h1>
+    <p class="lead">Diga o treinador cujas ideias você quer usar no seu save. O assistente pesquisa, analisa a viabilidade e entrega a tática no campinho, com funções, instruções e o porquê de dar certo — ou não.</p>
+    <div class="cta-row">
+      <a class="btn cta big" href="#tatica">Ver a tática no campinho</a>
+      <button class="btn big" data-act="paste">⬇ Colar resposta do Claude</button>
+    </div>
   </div>
-</div>
+</section>
+
+<section class="band" id="como">
+  <div class="wrap">
+    <h2>Como funciona</h2>
+    <div class="steps3">
+      <div class="step"><span>1</span><h3>Peça no chat</h3><p>No seu Projeto do Claude.ai, escreva: <i>“quero implementar as ideias do treinador X no FM26”</i>. Ele pesquisa em sites e análises, em qualquer idioma.</p><button class="btn sm" data-act="copyprompt">📋 Copiar instruções do projeto</button></div>
+      <div class="step"><span>2</span><h3>Cole a resposta aqui</h3><p>Copie a resposta do Claude e cole neste site. A tática é montada automaticamente.</p><button class="btn sm" data-act="paste">⬇ Colar resposta</button></div>
+      <div class="step"><span>3</span><h3>Veja e ajuste</h3><p>Campinho com formação com e sem bola, papéis, instruções de equipe, nota de viabilidade e comentários explicando o porquê.</p><a class="btn sm" href="#tatica">Abrir o campinho</a></div>
+    </div>
+  </div>
+</section>
+
+<section id="ideias">
+  <div class="wrap">
+    <h2>Suas ideias táticas</h2>
+    <p class="sub">Cada ideia guarda formações, papéis, instruções, fontes e resultados. Os dados ficam salvos neste navegador.</p>
+    <div id="ideas-body"></div>
+  </div>
+</section>
+
+<section class="alt" id="tatica">
+  <div class="wrap">
+    <h2>Tática no campinho</h2>
+    <div id="head" class="idea-head"></div>
+    <div class="tgrid">
+      <div class="pitch-col">
+        <div class="phase-bar" id="phasebar"></div>
+        <div class="tools" id="tools"></div>
+        <div class="pitch-wrap"><svg id="pitch" viewBox="0 0 680 1000" preserveAspectRatio="xMidYMid meet"></svg></div>
+        <p class="hint" id="hint"></p>
+      </div>
+      <div class="side-col" id="side"></div>
+    </div>
+  </div>
+</section>
+
+<section id="analise">
+  <div class="wrap">
+    <h2>Análise do assistente</h2>
+    <p class="sub">Resumo do modelo de jogo, veredito, riscos e fontes — vindos da resposta do Claude.</p>
+    <div id="analise-body"></div>
+  </div>
+</section>
+
+<section class="alt" id="viabilidade">
+  <div class="wrap">
+    <h2>Viabilidade no Football Manager</h2>
+    <p class="sub">Estimativa por regras do motor do FM26 (rest defence, pressão, campo, papéis e plantel). Valide no jogo pelo registro de partidas.</p>
+    <div id="viab-body"></div>
+  </div>
+</section>
+
+<section id="papeis">
+  <div class="wrap">
+    <h2>Funções dos jogadores</h2>
+    <p class="sub">No FM26 cada jogador tem um papel com bola e outro sem bola.</p>
+    <div id="roles-body"></div>
+  </div>
+</section>
+
+<section class="alt" id="instrucoes">
+  <div class="wrap">
+    <h2>Instruções de equipe</h2>
+    <div id="instr-body"></div>
+  </div>
+</section>
+
+<section id="dados">
+  <div class="wrap">
+    <h2>Dados reais e plantel</h2>
+    <p class="sub">Métricas do treinador real (PPDA, posse…) viram instruções; o perfil do seu elenco mostra se ele aguenta a ideia.</p>
+    <div id="data-body"></div>
+  </div>
+</section>
+
+<section class="alt" id="fontes">
+  <div class="wrap">
+    <h2>Fontes e leitura de texto</h2>
+    <p class="sub">Cole um artigo, tweet ou thread e o app extrai as ideias táticas por palavras-chave.</p>
+    <div id="sources-body"></div>
+  </div>
+</section>
+
+<section id="registro">
+  <div class="wrap">
+    <h2>Registro de jogos</h2>
+    <p class="sub">Anote os resultados com esta tática para ver se a previsão se confirma.</p>
+    <div id="log-body"></div>
+  </div>
+</section>
+
+<section class="alt" id="guia">
+  <div class="wrap">
+    <h2>Guia do motor do FM26</h2>
+    <div id="guide-body" class="cols2"></div>
+  </div>
+</section>
+
+<section id="transf">
+  <div class="wrap">
+    <h2>Transferências <span class="pill info">em breve</span></h2>
+    <p class="sub">Na janela de transferências, envie prints de jogadores no mesmo Projeto do Claude e pergunte se encaixam na tática. As instruções do projeto já incluem esse modo.</p>
+  </div>
+</section>
+
+<footer><div class="wrap">Assistente Técnico FM · projeto pessoal · não afiliado à Sports Interactive/SEGA · <a href="#inicio">voltar ao topo ↑</a></div></footer>
+
 <div class="modal" id="modal" hidden></div>
 <div class="toast" id="toast"></div>
 <script src="data.js"></script>

@@ -50,41 +50,37 @@ function short(s,n){return s.length>n?s.slice(0,n-1)+'…':s}
 
 /* ---------- render: esquerda ---------- */
 function renderLeft(){
-  const i=cur(); const L=$('#left'); let h='';
-  
-  h+=`<div class="sec"><h4>Ideias táticas <span class="row"><button class="btn sm pri" data-act="new">+ Nova</button></span></h4>`;
-  if(!DB.ideas.length)h+=`<div class="empty">Nenhuma ideia ainda.</div>`;
-  DB.ideas.forEach(x=>{const e=evaluate(x);h+=`<div class="idea-item ${x.id===DB.active?'on':''}" data-act="open" data-id="${x.id}"><div class="grow"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.coach||'—')} · ${x.version} · ${esc(x.IP.form)} → ${esc(x.OOP.form)}</div></div><span class="pill ${e.tone}">${e.score}</span></div>`});
-  h+=`<div class="row" style="margin-top:6px"><select data-act-change="preset" style="width:auto;flex:1"><option value="">+ Exemplo do relatório…</option><option value="dezerbi">De Zerbi — 2-4-4 / pressão alta</option><option value="arteta">Arteta — 4-3-3 → 4-4-2</option></select></div>`;
-  h+=`<div class="row" style="margin-top:6px"><button class="btn sm" data-act="export">Exportar</button><button class="btn sm" data-act="import">Importar</button>${i?`<button class="btn sm" data-act="dup">Duplicar</button><button class="btn sm danger" data-act="del">Excluir</button>`:''}</div></div>`;
-  if(i){
-    h+=`<div class="sec"><h4>Resumo da ideia</h4><textarea data-bind="notes" data-live placeholder="Em suas palavras: o que esse treinador faz, por que funciona…">${esc(i.notes)}</textarea></div>`;
-    h+=`<div class="sec"><h4>Fontes (artigos, tweets, vídeos)</h4>`;
-    i.sources.forEach(s=>{h+=`<div class="src"><div class="row"><span class="pill info">${esc(s.type)}</span><span class="t grow">${esc(short(s.title||'(sem título)',48))}</span><button class="btn sm danger" data-act="delsrc" data-id="${s.id}">×</button></div>${s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(short(s.url,60))}</a>`:''}<div class="cd" style="color:var(--dim);font-size:11px">${s.text?s.text.length+' caracteres colados':'sem texto'}</div></div>`});
-    const d=ui.draftSrc;
-    h+=`<div class="card2"><h5>Adicionar fonte</h5>
-     <div class="row"><select data-draft="draftSrc.type" style="width:auto">${['Artigo','Tweet/X','Vídeo','Dados/Stats','Relatório','Outro'].map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" class="grow" placeholder="Título" data-draft="draftSrc.title" value="${esc(d.title)}"></div>
-     <input type="url" placeholder="Link (opcional — o app não busca a página)" data-draft="draftSrc.url" value="${esc(d.url)}" style="margin-top:6px">
-     <textarea placeholder="Cole aqui o texto do artigo/tweet/thread — é daqui que a análise extrai as ideias." data-draft="draftSrc.text" style="margin-top:6px">${esc(d.text)}</textarea>
-     <div class="row" style="margin-top:6px"><button class="btn pri sm" data-act="addsrc">Adicionar</button></div></div>`;
-    h+=`<button class="btn pri" style="width:100%" data-act="analyze">🔍 Analisar fontes e resumo</button>`;
-    if(ui.det){
-      const det=ui.det;
-      if(!det.found.length&&!det.forms.length)h+=`<div class="empty">Nada reconhecido. Cole texto com termos como pressão alta, bloco baixo, 3-2-5, meios-espaços…</div>`;
-      else{
-        h+=`<div style="margin-top:8px">`;
-        if(det.forms.length)h+=`<label class="det"><input type="checkbox" data-detchk="forms" ${ui.detSel.has('forms')?'checked':''}> <b>Formações citadas:</b> ${det.forms.join(', ')}<q>1ª → fase IP${det.forms[1]?', 2ª → fase OOP':''}</q></label>`;
-        det.found.forEach(f=>{
-          let sn=esc(f.snippet);const eh=esc(f.hit);sn=sn.split(eh).join('<mark>'+eh+'</mark>');
-          h+=`<label class="det"><input type="checkbox" data-detchk="${f.id}" ${ui.detSel.has(f.id)?'checked':''}> <b>${esc(f.lab)}</b><q>…${sn}…</q><q style="color:#c8d9ce">${esc(f.note)}</q></label>`});
-        h+=`<button class="btn pri" style="width:100%" data-act="applydet">Aplicar selecionados às instruções</button></div>`;
-      }
+  const i=cur(); let h='';
+  h+=`<div class="cards">`;
+  DB.ideas.forEach(x=>{const e=evaluate(x);h+=`<div class="icard ${x.id===DB.active?'on':''}" data-act="open" data-id="${x.id}"><span class="pill sc ${e.tone}">${e.score}</span><h3>${esc(x.title)}</h3><p>${esc(x.coach||'sem treinador')} · ${x.version}</p><p>${esc(x.IP.form)} → ${esc(x.OOP.form)}</p></div>`});
+  h+=`<div class="icard new" data-act="new">+ Nova ideia</div></div>`;
+  h+=`<div class="row"><select data-act-change="preset" style="width:auto"><option value="">+ Exemplo do relatório…</option><option value="dezerbi">De Zerbi — 2-4-4 / pressão alta</option><option value="arteta">Arteta — 4-3-3 → 4-4-2</option></select><button class="btn sm" data-act="export">Exportar</button><button class="btn sm" data-act="import">Importar</button>${i?`<button class="btn sm" data-act="dup">Duplicar</button><button class="btn sm danger" data-act="del">Excluir</button>`:''}</div>`;
+  $('#ideas-body').innerHTML=h;
+  let s='';
+  if(!i){$('#sources-body').innerHTML='<div class="empty">Abra uma ideia para adicionar fontes.</div>';return}
+  s+=`<div class="cols2"><div><h3>Resumo da ideia</h3><textarea data-bind="notes" data-live placeholder="Em suas palavras: o que esse treinador faz, por que funciona…" style="min-height:140px">${esc(i.notes)}</textarea><h3 style="margin-top:18px">Fontes</h3>`;
+  if(!i.sources.length)s+=`<div class="empty">Nenhuma fonte ainda.</div>`;
+  i.sources.forEach(x=>{s+=`<div class="src"><div class="row"><span class="pill info">${esc(x.type)}</span><span class="t grow">${esc(short(x.title||'(sem título)',60))}</span><button class="btn sm danger" data-act="delsrc" data-id="${x.id}">×</button></div>${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(short(x.url,80))}</a>`:''}<div style="color:var(--dim);font-size:12px">${x.text?x.text.length+' caracteres colados':'sem texto'}</div></div>`});
+  const d=ui.draftSrc;
+  s+=`</div><div><div class="card2"><h5>Adicionar fonte</h5>
+   <div class="row"><select data-draft="draftSrc.type" style="width:auto">${['Artigo','Tweet/X','Vídeo','Dados/Stats','Relatório','Outro'].map(t=>`<option ${d.type===t?'selected':''}>${t}</option>`).join('')}</select><input type="text" class="grow" placeholder="Título" data-draft="draftSrc.title" value="${esc(d.title)}"></div>
+   <input type="url" placeholder="Link (opcional — o site não busca a página)" data-draft="draftSrc.url" value="${esc(d.url)}" style="margin-top:8px">
+   <textarea placeholder="Cole aqui o texto do artigo/tweet/thread." data-draft="draftSrc.text" style="margin-top:8px">${esc(d.text)}</textarea>
+   <div class="row" style="margin-top:8px"><button class="btn pri sm" data-act="addsrc">Adicionar fonte</button><button class="btn sm" data-act="analyze">🔍 Analisar fontes e resumo</button></div></div>`;
+  if(ui.det){
+    const det=ui.det;
+    if(!det.found.length&&!det.forms.length)s+=`<div class="empty">Nada reconhecido. Use termos como pressão alta, bloco baixo, 3-2-5, meios-espaços…</div>`;
+    else{
+      if(det.forms.length)s+=`<label class="det"><input type="checkbox" data-detchk="forms" ${ui.detSel.has('forms')?'checked':''}> <b>Formações citadas:</b> ${det.forms.join(', ')}<q>1ª → fase IP${det.forms[1]?', 2ª → fase OOP':''}</q></label>`;
+      det.found.forEach(f=>{
+        let sn=esc(f.snippet);const eh=esc(f.hit);sn=sn.split(eh).join('<mark>'+eh+'</mark>');
+        s+=`<label class="det"><input type="checkbox" data-detchk="${f.id}" ${ui.detSel.has(f.id)?'checked':''}> <b>${esc(f.lab)}</b><q>…${sn}…</q><q style="color:#c8d9ce">${esc(f.note)}</q></label>`});
+      s+=`<button class="btn pri" data-act="applydet">Aplicar selecionados às instruções</button>`;
     }
-    h+=`</div>`;
   }
-  L.innerHTML=h;
+  s+=`</div></div>`;
+  $('#sources-body').innerHTML=s;
 }
-
 /* ---------- render: cabeçalho, fases, ferramentas ---------- */
 function renderHead(){
   const i=cur(); const H=$('#head');
@@ -204,24 +200,41 @@ function initPitch(){
 /* ---------- render: direita ---------- */
 const RTABS=[['ana','Análise'],['viab','Viabilidade'],['roles','Papéis'],['instr','Instruções'],['data','Dados'],['squad','Plantel'],['log','Registro'],['guide','Guia FM']];
 function renderRight(){
-  const i=cur();
-  $('#rtabs').innerHTML=RTABS.map(([k,l])=>`<button class="${ui.rtab===k?'on':''}" data-act="rtab" data-t="${k}">${l}</button>`).join('');
-  const B=$('#rbody');
-  if(!i){B.innerHTML='<div class="empty">Crie uma ideia na barra lateral.</div>';return}
-  const fn={ana:rAna,viab:rViab,roles:rRoles,instr:rInstr,data:rData,squad:rSquad,log:rLog,guide:rGuide}[ui.rtab];
-  B.innerHTML=fn(i);
+  const i=cur(); const set=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h};
+  set('guide-body',rGuide());
+  if(!i){['side','analise-body','viab-body','roles-body','instr-body','data-body','log-body'].forEach(id=>set(id,'<div class="empty">Crie ou abra uma ideia tática.</div>'));return}
+  set('side',rSide(i));set('analise-body',rAna(i));set('viab-body',rViab(i));set('roles-body',rRoles(i));
+  set('instr-body',`<div class="cols2"><div>${rInstr(i,'IP')}</div><div>${rInstr(i,'OOP')}</div></div>`);
+  set('data-body',`<div class="cols2"><div><h3>Dados reais do treinador</h3>${rData(i)}</div><div><h3>Seu plantel</h3>${rSquad(i)}</div></div>`);
+  set('log-body',rLog(i));
+}
+function rSide(i){
+  const e=evaluate(i); let h=`<div class="card2"><h5>Veredito rápido</h5><div class="gauge"><div class="n" style="color:${barCol(e.score)}">${e.score}</div><div><b>${e.verdict}</b><div style="color:var(--mut);font-size:13px">${i.version} · ${PITCHES[i.pitch].lab}</div></div></div>`;
+  e.fixes.slice(0,3).forEach(f=>{h+=`<p>• ${esc(f.fix)}</p>`});
+  h+=`<a class="btn sm" href="#viabilidade">Ver detalhes</a></div>`;
+  if(i.notes)h+=`<div class="card2"><h5>Resumo</h5><p>${esc(short(i.notes,420))}</p></div>`;
+  const a=i.IP.slots.find(s=>s.pid===ui.sel), b=i.OOP.slots.find(s=>s.pid===ui.sel);
+  if(a){
+    h+=`<div class="card2"><h5>Jogador ${a.pid+1} · ${a.code} → ${b?b.code:'—'}</h5>`;
+    [['IP',ROLES[a.role]],['OOP',b&&ROLES[b.role]]].forEach(([ph,r])=>{
+      h+=r?`<p><span class="pill ${ph==='IP'?'ok':'info'}">${ph==='IP'?'com bola':'sem bola'}</span> <b>${esc(r.pt)}</b> <span style="color:var(--dim)">(${esc(r.en)})</span></p><div class="attrs">${r.attrs.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:`<p><span class="pill ${ph==='IP'?'ok':'info'}">${ph==='IP'?'com bola':'sem bola'}</span> <span style="color:var(--dim)">sem papel definido</span></p>`});
+    h+=`</div>`;
+  } else h+=`<div class="card2"><p style="color:var(--dim)">Clique em um jogador no campo para ver o papel e os atributos-chave.</p></div>`;
+  return h;
 }
 const SEV_IC={ok:'✓',info:'i',warn:'!',bad:'✕'};
 function barCol(s){return s>=80?'#4fff5f':s>=65?'#4fc3f7':s>=50?'#f5b942':'#ef5350'}
 function rViab(i){
   const e=evaluate(i); let h='';
   h+=`<div class="gauge"><div class="n" style="color:${barCol(e.score)}">${e.score}</div><div><div style="font-weight:700;font-size:15px">${e.verdict}</div><div style="color:var(--mut);font-size:11.5px">Nota 0–100 pelas regras do ${i.version}${e.rules.provisional?' (provisórias)':''}. É uma <b>estimativa heurística</b> baseada no relatório do FM26 — valide no jogo na aba Registro.</div></div></div>`;
+  h+=`<div class="dgrid">`;
   e.dims.forEach(d=>{
     h+=`<div class="dim"><div class="row"><b class="grow">${d.lab}</b><span style="color:var(--dim);font-size:11px">peso ${d.w}%</span><span class="pill ${d.score>=80?'ok':d.score>=65?'info':d.score>=50?'warn':'bad'}">${d.score}</span></div><div class="bar"><i style="width:${d.score}%;background:${barCol(d.score)}"></i></div>`;
     d.f.forEach(f=>{h+=`<div class="find ${f.sev}"><span class="ic">${SEV_IC[f.sev]}</span><div>${esc(f.t)}${f.fix?`<div class="fx">→ ${esc(f.fix)}</div>`:''}</div></div>`});
     h+=`</div>`;
   });
-  if(e.fixes.length){h+=`<div class="card2"><h5>Ajustes sugeridos (por prioridade)</h5>`;e.fixes.slice(0,6).forEach(f=>{h+=`<p>• ${esc(f.fix)}</p>`});h+=`</div>`}
+  h+=`</div>`;
+  if(e.fixes.length){h+=`<div class="card2" style="margin-top:14px"><h5>Ajustes sugeridos (por prioridade)</h5>`;e.fixes.slice(0,6).forEach(f=>{h+=`<p>• ${esc(f.fix)}</p>`});h+=`</div>`}
   const r=i.rules[i.version];
   h+=`<div class="card2"><h5>Parâmetros do motor — ${i.version}</h5><div class="grid2">
    <div><label class="f">Deslocamento máx. IP→OOP (m)</label><input type="number" data-bind="rules.${i.version}.maxDisp" data-num data-r="right" value="${r.maxDisp}"></div>
@@ -236,24 +249,18 @@ function roleOpts(grp,phase,sel){
   return `<option value="">— definir papel —</option><optgroup label="${GROUPS[grp]}">${own.map(o).join('')}</optgroup><optgroup label="Outras posições">${other.map(o).join('')}</optgroup>`;
 }
 function rRoles(i){
-  let h=`<p style="color:var(--mut);margin-top:0">Cada jogador tem um papel <b style="color:var(--ip)">com bola</b> e outro <b style="color:var(--oop)">sem bola</b> (sistema de formações duplas do FM26).</p>`;
   const order=[...i.IP.slots].sort((a,b)=>b.y-a.y);
+  let h=`<table class="t"><tr><th>#</th><th>Posição</th><th>Com bola (IP)</th><th>Sem bola (OOP)</th><th>Atributos-chave</th></tr>`;
   order.forEach(a=>{
     const b=i.OOP.slots.find(o=>o.pid===a.pid)||{code:'—',role:null};
-    const on=ui.sel===a.pid;
-    h+=`<div class="prow ${on?'on':''}" data-act="selpid" data-pid="${a.pid}"><div class="c" style="background:${a.code==='GK'?'#f5b942':'#4fff5f'}">${a.pid+1}</div><div><div class="cd">${a.code} → ${b.code}</div></div></div>`;
-    h+=`<div class="grid2" style="margin:0 0 8px 42px"><select data-role="IP" data-pid="${a.pid}">${roleOpts(groupOf(a.code),'IP',a.role)}</select><select data-role="OOP" data-pid="${a.pid}">${roleOpts(groupOf(b.code==='—'?a.code:b.code),'OOP',b.role)}</select></div>`;
-    if(on){
-      const rs=[['IP',ROLES[a.role]],['OOP',ROLES[b.role]]].filter(x=>x[1]);
-      rs.forEach(([ph,r])=>{h+=`<div style="margin:0 0 8px 42px"><span class="pill ${ph==='IP'?'ok':'info'}">${ph}</span> <b>${esc(r.pt)}</b> <span style="color:var(--dim)">(${esc(r.en)})</span><div class="attrs">${r.attrs.map(x=>`<span>${esc(x)}</span>`).join('')||'<span style="opacity:.6">sem atributos-chave específicos</span>'}</div>${r.wr>=3?`<div style="color:var(--y);font-size:11px">Exige alto Índice de Trabalho/Resistência.</div>`:''}</div>`});
-    }
+    const at=[];[ROLES[a.role],ROLES[b.role]].forEach(r=>r&&r.attrs.forEach(x=>{if(!at.includes(x))at.push(x)}));
+    h+=`<tr class="${ui.sel===a.pid?'on':''}"><td class="sel" data-act="selpid" data-pid="${a.pid}">${a.pid+1}</td><td class="sel" data-act="selpid" data-pid="${a.pid}">${a.code} → ${b.code}</td><td><select data-role="IP" data-pid="${a.pid}">${roleOpts(groupOf(a.code),'IP',a.role)}</select></td><td><select data-role="OOP" data-pid="${a.pid}">${roleOpts(groupOf(b.code==='—'?a.code:b.code),'OOP',b.role)}</select></td><td><div class="attrs">${at.slice(0,7).map(x=>`<span>${esc(x)}</span>`).join('')}</div></td></tr>`;
   });
-  h+=`<p style="color:var(--dim);font-size:11px">Catálogo-base montado a partir do seu relatório FM26 e do Banco de Dados (nomes/atributos podem diferir ligeiramente do jogo). Edite em <code>data.js</code>.</p>`;
-  return h;
+  return h+`</table><p style="color:var(--dim);font-size:13px">Catálogo-base montado a partir do relatório FM26 e do Banco de Dados; nomes e atributos podem diferir ligeiramente do jogo.</p>`;
 }
-function rInstr(i){
+function rInstr(i,only){
   let h='';
-  ['IP','OOP'].forEach(ph=>{
+  ['IP','OOP'].filter(p=>!only||p===only).forEach(ph=>{
     h+=`<h4 style="margin:12px 0 8px;font-size:11px;letter-spacing:.12em;color:${ph==='IP'?'var(--ip)':'var(--oop)'}">${ph==='IP'?'COM POSSE DE BOLA':'SEM POSSE DE BOLA'}</h4>`;
     INSTR_DEF.filter(d=>d.ph===ph).forEach(d=>{
       const v=i.instr[d.k];
@@ -316,9 +323,7 @@ function rGuide(){
 
 /* ---------- barra superior, modal e aba Análise ---------- */
 function renderTop(){
-  $('#top').innerHTML=`<button class="btn sm" data-act="toggleleft" title="Mostrar/ocultar ideias">☰</button><div class="logo">ASSISTENTE <b>TÉCNICO FM</b></div><div class="sp"></div>
-   <button class="btn" data-act="copyprompt">📋 Copiar instruções do projeto</button>
-   <button class="btn cta" data-act="paste">⬇ Colar resposta do Claude</button>`;
+  $('#top').innerHTML=`<a class="logo" href="#inicio">ASSISTENTE <b>TÉCNICO FM</b></a><nav class="nav"><a href="#como">Como funciona</a><a href="#ideias">Ideias</a><a href="#tatica">Tática</a><a href="#analise">Análise</a><a href="#viabilidade">Viabilidade</a><a href="#papeis">Funções</a><a href="#instrucoes">Instruções</a><a href="#dados">Plantel</a><a href="#registro">Registro</a><a href="#guia">Guia</a></nav><button class="btn cta sm" data-act="paste">⬇ Colar resposta do Claude</button>`;
 }
 function modal(html){const m=$('#modal');m.innerHTML=`<div class="box">${html}</div>`;m.hidden=false}
 function closeModal(){$('#modal').hidden=true}
@@ -334,7 +339,7 @@ function doImport(){
   try{
     const {idea,warnings}=importAnalysis(extractJSON(t));
     DB.ideas.unshift(idea);ui.rtab='ana';ui.phase='IP';closeModal();openIdea(idea.id);
-    toast(warnings.length?'Tática montada com '+warnings.length+' avisos':'Tática montada!');
+    toast(warnings.length?'Tática montada com '+warnings.length+' avisos':'Tática montada!');{const el=document.getElementById('tatica');if(el)el.scrollIntoView({behavior:'smooth'})}
     if(warnings.length){idea.importWarnings=warnings;save();renderRight()}
   }catch(e){$('#pasteErr').innerHTML=`<div class="warnbox">Não consegui ler: ${esc(e.message)}</div>`}
 }
@@ -345,8 +350,8 @@ function copyText(txt){
 function rAna(i){
   const a=i.analysis; let h='';
   if(!a){
-    return `<div class="card2"><h5>Como usar o assistente</h5><ol class="steps"><li>Clique em <b>Copiar instruções do projeto</b> (topo) e cole nas instruções de um Projeto no Claude.ai.</li><li>Converse com ele: <i>"quero as ideias do treinador X no FM26"</i>.</li><li>Clique em <b>Colar resposta do Claude</b> e a tática aparece no campinho, com comentários.</li></ol></div>
-    <div class="card2"><h5>Esta ideia</h5><p>${esc(i.notes||'Sem resumo ainda.')}</p><p style="color:var(--dim);font-size:11.5px">Ideias criadas manualmente ou pelos exemplos não têm análise do assistente. Veja a aba Viabilidade para a nota automática.</p></div>`;
+    return `<div class="card2"><h5>Como usar o assistente</h5><ol class="steps"><li>Clique em <b>Copiar instruções do projeto</b> (seção "Como funciona") e cole nas instruções de um Projeto no Claude.ai.</li><li>Converse com ele: <i>"quero as ideias do treinador X no FM26"</i>.</li><li>Clique em <b>Colar resposta do Claude</b> e a tática aparece no campinho, com comentários.</li></ol></div>
+    <div class="card2"><h5>Esta ideia</h5><p>${esc(i.notes||'Sem resumo ainda.')}</p><p style="color:var(--dim);font-size:11.5px">Ideias criadas manualmente ou pelos exemplos não têm análise do assistente. Veja a seção Viabilidade para a nota automática.</p></div>`;
   }
   const e=evaluate(i);
   h+=`<div class="ana"><div class="row" style="margin-bottom:8px"><span class="pill ${e.tone}">Nota do app ${e.score}</span>${a.confianca?`<span class="pill info">Confiança das fontes: ${esc(a.confianca)}</span>`:''}</div>`;
@@ -367,13 +372,12 @@ function openIdea(id){DB.active=id;ui.sel=null;ui.det=null;save();renderAll()}
 function act(a,d){
   const i=cur();
   switch(a){
-   case 'toggleleft':$('#app').classList.toggle('nol');break;
    case 'copyprompt':copyText(buildProjectInstructions()).then(()=>toast('Instruções copiadas — cole nas instruções do projeto no Claude.ai'));break;
    case 'paste':openPaste();break;
    case 'closemodal':closeModal();break;
    case 'doimport':doImport();break;
    case 'new':{const n=blankIdea();DB.ideas.unshift(n);openIdea(n.id);break}
-   case 'open':openIdea(d.id);break;
+   case 'open':openIdea(d.id);{const el=document.getElementById('tatica');if(el)el.scrollIntoView({behavior:'smooth'})}break;
    case 'del':if(i&&confirm('Excluir "'+i.title+'"?')){DB.ideas=DB.ideas.filter(x=>x.id!==i.id);DB.active=DB.ideas[0]?.id||null;commit()}break;
    case 'dup':if(i){const n=clone(i);n.id=uid();n.title+=' (cópia)';DB.ideas.unshift(n);openIdea(n.id)}break;
    case 'export':{const b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});const a2=document.createElement('a');a2.href=URL.createObjectURL(b);a2.download='laboratorio-tatico-fm.json';a2.click();break}
@@ -384,7 +388,7 @@ function act(a,d){
    case 'ball':if(i){i.ball[ui.phase]=i.ball[ui.phase]?null:{x:340,y:500};save();renderTools();renderPitch()}break;
    case 'undo':if(i){i.draw[ui.phase].pop();save();renderPitch()}break;
    case 'clear':if(i){i.draw[ui.phase]=[];save();renderPitch()}break;
-   case 'rtab':ui.rtab=d.t;renderRight();break;
+   case 'rtab':{const m={ana:'analise',viab:'viabilidade',roles:'papeis',instr:'instrucoes',data:'dados',squad:'dados',log:'registro',guide:'guia'};const el=document.getElementById(m[d.t]);if(el)el.scrollIntoView({behavior:'smooth'});break}
    case 'selpid':ui.sel=+d.pid;renderRight();renderPitch();break;
    case 'instr':if(i){i.instr[d.k]=+d.v;save();renderHead();renderLeft();renderRight()}break;
    case 'addsrc':{const s=ui.draftSrc;if(!i||(!s.text.trim()&&!s.url.trim()&&!s.title.trim())){toast('Preencha título, link ou texto');break}
