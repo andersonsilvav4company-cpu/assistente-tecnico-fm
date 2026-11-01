@@ -3,7 +3,7 @@ const LS='fmlab.v1';
 const $=s=>document.querySelector(s);
 const clone=o=>JSON.parse(JSON.stringify(o));
 let DB={ideas:[],active:null};
-const ui={phase:'IP',tool:'move',color:'#ffffff',sel:null,rtab:'viab',det:null,detSel:new Set(),draftSrc:{type:'Artigo',title:'',url:'',text:''},draftLog:{date:new Date().toISOString().slice(0,10),opp:'',res:'V',gf:'',ga:'',xgf:'',xga:'',note:''}};
+const ui={phase:'IP',tool:'move',color:'#ffffff',sel:null,rtab:'ana',det:null,detSel:new Set(),draftSrc:{type:'Artigo',title:'',url:'',text:''},draftLog:{date:new Date().toISOString().slice(0,10),opp:'',res:'V',gf:'',ga:'',xgf:'',xga:'',note:''}};
 const COLORS=['#ffffff','#f5b942','#ef5350','#4fc3f7','#111111'];
 let drag=null, drawing=null, raf=0;
 
@@ -51,7 +51,7 @@ function short(s,n){return s.length>n?s.slice(0,n-1)+'…':s}
 /* ---------- render: esquerda ---------- */
 function renderLeft(){
   const i=cur(); const L=$('#left'); let h='';
-  h+=`<div class="brand">LABORATÓRIO <b>TÁTICO FM</b><small>v1</small></div>`;
+  
   h+=`<div class="sec"><h4>Ideias táticas <span class="row"><button class="btn sm pri" data-act="new">+ Nova</button></span></h4>`;
   if(!DB.ideas.length)h+=`<div class="empty">Nenhuma ideia ainda.</div>`;
   DB.ideas.forEach(x=>{const e=evaluate(x);h+=`<div class="idea-item ${x.id===DB.active?'on':''}" data-act="open" data-id="${x.id}"><div class="grow"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.coach||'—')} · ${x.version} · ${esc(x.IP.form)} → ${esc(x.OOP.form)}</div></div><span class="pill ${e.tone}">${e.score}</span></div>`});
@@ -202,13 +202,13 @@ function initPitch(){
 }
 
 /* ---------- render: direita ---------- */
-const RTABS=[['viab','Viabilidade'],['roles','Papéis'],['instr','Instruções'],['data','Dados'],['squad','Plantel'],['log','Registro'],['guide','Guia FM']];
+const RTABS=[['ana','Análise'],['viab','Viabilidade'],['roles','Papéis'],['instr','Instruções'],['data','Dados'],['squad','Plantel'],['log','Registro'],['guide','Guia FM']];
 function renderRight(){
   const i=cur();
   $('#rtabs').innerHTML=RTABS.map(([k,l])=>`<button class="${ui.rtab===k?'on':''}" data-act="rtab" data-t="${k}">${l}</button>`).join('');
   const B=$('#rbody');
   if(!i){B.innerHTML='<div class="empty">Crie uma ideia na barra lateral.</div>';return}
-  const fn={viab:rViab,roles:rRoles,instr:rInstr,data:rData,squad:rSquad,log:rLog,guide:rGuide}[ui.rtab];
+  const fn={ana:rAna,viab:rViab,roles:rRoles,instr:rInstr,data:rData,squad:rSquad,log:rLog,guide:rGuide}[ui.rtab];
   B.innerHTML=fn(i);
 }
 const SEV_IC={ok:'✓',info:'i',warn:'!',bad:'✕'};
@@ -313,12 +313,65 @@ function rGuide(){
    C('Como a nota de viabilidade é calculada','<p>Seis dimensões ponderadas: estrutura IP/OOP (20), rest defence (20), papéis (20), instruções (15), encaixe no plantel (15), campo (10). Regras derivadas do relatório FM26; <b>não é uma simulação do motor</b> — use o Registro para validar no jogo.</p>');
 }
 
+
+/* ---------- barra superior, modal e aba Análise ---------- */
+function renderTop(){
+  $('#top').innerHTML=`<button class="btn sm" data-act="toggleleft" title="Mostrar/ocultar ideias">☰</button><div class="logo">ASSISTENTE <b>TÉCNICO FM</b></div><div class="sp"></div>
+   <button class="btn" data-act="copyprompt">📋 Copiar instruções do projeto</button>
+   <button class="btn cta" data-act="paste">⬇ Colar resposta do Claude</button>`;
+}
+function modal(html){const m=$('#modal');m.innerHTML=`<div class="box">${html}</div>`;m.hidden=false}
+function closeModal(){$('#modal').hidden=true}
+function openPaste(){
+  modal(`<h3>Colar resposta do Claude</h3>
+  <ol class="steps"><li>No Claude.ai, abra o seu projeto de assistente técnico e peça: <i>“quero implementar as ideias do treinador X no FM26”</i>.</li><li>Quando ele responder, copie a resposta inteira (o bloco <code>json</code> no final basta).</li><li>Cole abaixo e clique em Montar tática.</li></ol>
+  <textarea id="pasteBox" placeholder="Cole aqui a resposta do Claude…"></textarea><div id="pasteErr"></div>
+  <div class="row" style="margin-top:10px"><button class="btn cta" data-act="doimport">Montar tática</button><button class="btn" data-act="closemodal">Cancelar</button></div>`);
+  setTimeout(()=>$('#pasteBox')&&$('#pasteBox').focus(),50);
+}
+function doImport(){
+  const t=$('#pasteBox').value;
+  try{
+    const {idea,warnings}=importAnalysis(extractJSON(t));
+    DB.ideas.unshift(idea);ui.rtab='ana';ui.phase='IP';closeModal();openIdea(idea.id);
+    toast(warnings.length?'Tática montada com '+warnings.length+' avisos':'Tática montada!');
+    if(warnings.length){idea.importWarnings=warnings;save();renderRight()}
+  }catch(e){$('#pasteErr').innerHTML=`<div class="warnbox">Não consegui ler: ${esc(e.message)}</div>`}
+}
+function copyText(txt){
+  if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(txt);
+  const a=document.createElement('textarea');a.value=txt;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();return Promise.resolve();
+}
+function rAna(i){
+  const a=i.analysis; let h='';
+  if(!a){
+    return `<div class="card2"><h5>Como usar o assistente</h5><ol class="steps"><li>Clique em <b>Copiar instruções do projeto</b> (topo) e cole nas instruções de um Projeto no Claude.ai.</li><li>Converse com ele: <i>"quero as ideias do treinador X no FM26"</i>.</li><li>Clique em <b>Colar resposta do Claude</b> e a tática aparece no campinho, com comentários.</li></ol></div>
+    <div class="card2"><h5>Esta ideia</h5><p>${esc(i.notes||'Sem resumo ainda.')}</p><p style="color:var(--dim);font-size:11.5px">Ideias criadas manualmente ou pelos exemplos não têm análise do assistente. Veja a aba Viabilidade para a nota automática.</p></div>`;
+  }
+  const e=evaluate(i);
+  h+=`<div class="ana"><div class="row" style="margin-bottom:8px"><span class="pill ${e.tone}">Nota do app ${e.score}</span>${a.confianca?`<span class="pill info">Confiança das fontes: ${esc(a.confianca)}</span>`:''}</div>`;
+  if(i.importWarnings&&i.importWarnings.length)h+=`<div class="warnbox"><b>Ajustes na importação:</b><ul>${i.importWarnings.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  if(i.notes)h+=`<div class="card2"><h5>Resumo</h5><p>${esc(i.notes)}</p></div>`;
+  if(a.comentario)h+=`<div class="card2"><h5>Veredito do assistente</h5><p>${esc(a.comentario)}</p></div>`;
+  if(a.porque.length)h+=`<div class="card2 good"><h5>Por que pode dar certo</h5><ul>${a.porque.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  if(a.riscos.length)h+=`<div class="card2 risk"><h5>Riscos e como mitigar</h5><ul>${a.riscos.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  const pf=Object.entries(a.perfil||{});
+  if(pf.length)h+=`<div class="card2"><h5>Perfil de jogadores</h5>${pf.map(([k,v])=>`<p><b>${esc(k)}:</b> ${esc(v)}</p>`).join('')}</div>`;
+  if(a.fontes.length)h+=`<div class="card2"><h5>Fontes</h5>${a.fontes.map(f=>`<p>${f.url?`<a style="color:var(--b)" href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.titulo||f.url)}</a>`:esc(f.titulo||'')} <span style="color:var(--dim)">${esc(f.idioma||'')}</span></p>`).join('')}</div>`;
+  return h+`</div>`;
+}
+
 /* ---------- ações ---------- */
 function commit(){save();renderAll()}
 function openIdea(id){DB.active=id;ui.sel=null;ui.det=null;save();renderAll()}
 function act(a,d){
   const i=cur();
   switch(a){
+   case 'toggleleft':$('#app').classList.toggle('nol');break;
+   case 'copyprompt':copyText(buildProjectInstructions()).then(()=>toast('Instruções copiadas — cole nas instruções do projeto no Claude.ai'));break;
+   case 'paste':openPaste();break;
+   case 'closemodal':closeModal();break;
+   case 'doimport':doImport();break;
    case 'new':{const n=blankIdea();DB.ideas.unshift(n);openIdea(n.id);break}
    case 'open':openIdea(d.id);break;
    case 'del':if(i&&confirm('Excluir "'+i.title+'"?')){DB.ideas=DB.ideas.filter(x=>x.id!==i.id);DB.active=DB.ideas[0]?.id||null;commit()}break;
@@ -371,7 +424,7 @@ document.addEventListener('change',e=>{
   }
 });
 
-function renderAll(){renderLeft();renderHead();renderPhaseBar();renderTools();renderPitch();renderRight()}
+function renderAll(){renderTop();renderLeft();renderHead();renderPhaseBar();renderTools();renderPitch();renderRight()}
 function init(){
   load();
   // migração de ideias antigas

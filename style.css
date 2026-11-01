@@ -104,3 +104,42 @@ table.t th,table.t td{padding:4px 6px;border-bottom:1px solid var(--line);text-a
   .left,.right{max-height:none}
   #pitch{max-height:none}
 }
+
+/* ===== v2: shell em tela cheia, barra superior, modal ===== */
+body{background:radial-gradient(1200px 600px at 70% -10%,#12261c 0,var(--bg) 60%)}
+.shell{display:flex;flex-direction:column;height:100vh}
+.top{display:flex;align-items:center;gap:10px;padding:0 14px;height:52px;flex:0 0 52px;background:#0a120e;border-bottom:1px solid var(--line)}
+.top .logo{font-weight:800;letter-spacing:.06em;font-size:16px;white-space:nowrap}
+.top .logo b{color:var(--y)}
+.top .sp{flex:1}
+.top .btn{white-space:nowrap}
+.btn.cta{background:linear-gradient(180deg,#2bb04a,#1f7a33);border-color:#3fd35e;font-weight:700;box-shadow:0 0 0 1px #0006,0 4px 14px #1f7a3355}
+.app{height:auto;flex:1;min-height:0;transition:grid-template-columns .2s}
+.app.nol{grid-template-columns:0 minmax(420px,1fr) 400px}
+.app.nol .left{display:none}
+.left,.right,.center{min-height:0}
+.brand{display:none}
+#pitch{max-height:calc(100vh - 375px);max-width:min(760px,100%)}
+.pitch-wrap{align-items:flex-start}
+.modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:20;padding:16px}
+.modal[hidden]{display:none}
+.modal .box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;width:min(760px,100%);max-height:90vh;overflow:auto;padding:18px}
+.modal h3{margin:0 0 6px}
+.modal textarea{min-height:220px;font-family:Consolas,monospace;font-size:12px}
+.steps{counter-reset:s;margin:8px 0 12px;padding:0;list-style:none}
+.steps li{counter-increment:s;display:flex;gap:10px;margin:6px 0;color:#c4d6cb}
+.steps li:before{content:counter(s);flex:0 0 22px;height:22px;border-radius:50%;background:#1f7a33;display:grid;place-items:center;font-weight:700;font-size:12px}
+.warnbox{background:#2a2410;border:1px solid #6b5a1b;border-radius:8px;padding:8px 10px;margin:8px 0;color:#f2dd9a;font-size:12px}
+.ana ul{margin:4px 0 4px 18px;padding:0}
+.ana li{margin:3px 0}
+.ana .good li::marker{color:var(--g)}.ana .risk li::marker{color:var(--y)}
+@media(max-width:900px){
+  body{overflow:auto}
+  .shell{height:auto}
+  .top{height:auto;flex-wrap:wrap;padding:8px 12px}
+  .app,.app.nol{display:flex;flex-direction:column;height:auto}
+  .left,.right{max-height:none;overflow:visible}
+  .rbody{overflow:visible}
+  #pitch{max-height:none}
+  .idea-head{grid-template-columns:1fr}
+}
