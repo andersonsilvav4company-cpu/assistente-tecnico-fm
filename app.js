@@ -415,6 +415,7 @@ document.addEventListener('change',e=>{
   const el=e.target; const i=cur();
   if(el.dataset.draft){setPath(ui,el.dataset.draft,el.value);return}
   if(el.dataset.detchk){el.checked?ui.detSel.add(el.dataset.detchk):ui.detSel.delete(el.dataset.detchk);return}
+  if(el.dataset.actChange==='switchidea'){openIdea(el.value);return}
   if(el.dataset.actChange==='preset'){if(el.value){const n=PRESETS[el.value]();DB.ideas.unshift(n);openIdea(n.id)}return}
   if(!i)return;
   if(el.dataset.role){const s=i[el.dataset.role].slots.find(x=>x.pid===+el.dataset.pid);s.role=el.value||null;save();renderLeft();renderHead();renderPitch();renderRight();return}
@@ -428,7 +429,7 @@ document.addEventListener('change',e=>{
   }
 });
 
-function renderAll(){renderTop();renderLeft();renderHead();renderPhaseBar();renderTools();renderPitch();renderRight()}
+function renderAll(){if(window.renderEmbedBar)renderEmbedBar();renderTop();renderLeft();renderHead();renderPhaseBar();renderTools();renderPitch();renderRight()}
 function init(){
   load();
   // migração de ideias antigas
@@ -438,3 +439,19 @@ function init(){
   initPitch();renderAll();
 }
 init();
+
+/* ---------- modo embed (para páginas do Google Sites): ?embed=1&sec=tatica,analise ---------- */
+(function(){
+  const q=new URLSearchParams(location.search);
+  if(!q.get('embed'))return;
+  document.body.classList.add('embed');
+  const keep=(q.get('sec')||'tatica').split(',');
+  document.querySelectorAll('section').forEach(s=>{if(!keep.includes(s.id))s.style.display='none'});
+  ['#top','footer'].forEach(sel=>{const e=document.querySelector(sel);if(e)e.style.display='none'});
+  const bar=document.createElement('div');bar.className='embedbar';bar.id='embedbar';
+  document.body.insertBefore(bar,document.body.firstChild);
+  window.renderEmbedBar=function(){
+    bar.innerHTML=`<span style="color:var(--mut);font-size:13px">Ideia ativa:</span><select data-act-change="switchidea">${DB.ideas.map(x=>`<option value="${x.id}" ${x.id===DB.active?'selected':''}>${esc(x.title)}</option>`).join('')}</select><button class="btn cta sm" data-act="paste">⬇ Colar resposta do Claude</button>`;
+  };
+  renderEmbedBar();
+})();

@@ -158,3 +158,14 @@ footer{padding:28px 0;border-top:1px solid var(--line);color:var(--dim);font-siz
   .wrap{padding:0 16px}
   .hero{padding:56px 0 48px}
 }
+
+/* modo embed */
+body.embed{background:var(--bg)}
+body.embed section{padding:14px 0;border:0;background:none}
+body.embed .wrap{max-width:none;padding:0 14px}
+body.embed h2{font-size:22px;margin-bottom:6px}
+body.embed .sub{margin-bottom:12px;font-size:14px}
+body.embed .side-col a.btn,body.embed .idea-head+.tgrid a.btn{display:none}
+body.embed #pitch{max-height:none}
+.embedbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;background:#0a120e;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+.embedbar select{width:auto;max-width:60%}
