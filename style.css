@@ -181,7 +181,7 @@ body.embed .dim,body.embed .card2{padding:10px 12px}
 @media(max-width:700px){body.embed .tgrid{grid-template-columns:1fr}}
 
 /* embed: campo se ajusta à altura da caixa do Sites (sem corte) */
-body.embed #pitch{width:auto;max-width:100%;height:calc(100vh - 420px);min-height:360px;max-height:none}
+body.embed #pitch{width:auto;max-width:100%;height:calc(100vh - 540px);min-height:320px;max-height:none}
 body.embed .pitch-wrap{justify-content:center}
 body.embed .tgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 body.embed{background:var(--bg)}
